@@ -22,7 +22,7 @@
         }
         
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 20px auto;
             background: white;
             border-radius: 12px;
@@ -180,7 +180,7 @@
         .product-images {
             display: flex;
             flex-direction: column;
-            gap: 25px;
+            gap: 30px;
             margin: 35px 0;
         }
         
@@ -188,20 +188,39 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
             position: relative;
         }
         
-        .image-container:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+        .image-container.zoomed {
+            position: relative;
+            z-index: 100;
+            transform: none;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .image-wrapper {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            cursor: grab;
+            background: #f8f9fa;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .image-wrapper.grabbing {
+            cursor: grabbing;
         }
         
         .zoomable-image {
-            width: 100%;
+            max-width: 100%;
+            max-height: 100%;
             display: block;
-            transition: transform 0.5s ease;
-            cursor: zoom-in;
+            transition: transform 0.3s ease;
+            will-change: transform;
         }
         
         .image-label {
@@ -211,23 +230,61 @@
             font-weight: 600;
             color: #2e8b36;
             font-size: 0.95rem;
+            transition: background-color 0.3s;
+        }
+        
+        .image-container.zoomed .image-label {
+            background: #e9f5ea;
         }
         
         .zoom-instruction {
             position: absolute;
-            bottom: 8px;
-            right: 8px;
+            bottom: 15px;
+            right: 15px;
             background: rgba(0, 0, 0, 0.7);
             color: white;
-            padding: 4px 8px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            opacity: 0;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            opacity: 1;
             transition: opacity 0.3s;
+            z-index: 10;
+            pointer-events: none;
         }
         
-        .image-container:hover .zoom-instruction {
+        .image-container.zoomed .zoom-instruction {
+            display: none;
+        }
+        
+        .zoom-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
             opacity: 1;
+        }
+        
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #2e8b36;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+        
+        .zoom-btn:hover {
+            background: white;
+            transform: scale(1.1);
         }
         
         .unique-feature {
@@ -304,8 +361,34 @@
             font-size: 0.9rem;
         }
         
+        /* Overlay for when image is zoomed */
+        .zoom-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 90;
+        }
+        
+        .zoom-overlay.active {
+            display: block;
+        }
+        
+        /* Loading indicator */
+        .image-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #2e8b36;
+            font-size: 1.2rem;
+        }
+        
         /* Responsive adjustments for tablets */
-        @media (min-width: 600px) {
+        @media (min-width: 768px) {
             .content {
                 padding: 30px;
             }
@@ -334,10 +417,23 @@
                 margin-right: 15px;
                 margin-bottom: 0;
             }
+            
+            .product-images {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .image-container {
+                flex: 1 1 45%;
+            }
+            
+            .image-wrapper {
+                min-height: 600px;
+            }
         }
         
         /* Responsive adjustments for desktop */
-        @media (min-width: 900px) {
+        @media (min-width: 1024px) {
             body {
                 padding: 25px;
             }
@@ -369,10 +465,14 @@
             .contact-info {
                 grid-template-columns: repeat(3, 1fr);
             }
+            
+            .image-wrapper {
+                min-height: 700px;
+            }
         }
         
         /* Very small devices */
-        @media (max-width: 360px) {
+        @media (max-width: 480px) {
             body {
                 padding: 10px;
             }
@@ -402,6 +502,16 @@
             .info-content div:last-child {
                 font-size: 0.9rem;
             }
+            
+            .zoom-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            
+            .image-wrapper {
+                min-height: 400px;
+            }
         }
         
         /* Touch device improvements */
@@ -420,11 +530,6 @@
             .contact-card:hover {
                 transform: none;
                 box-shadow: none;
-            }
-            
-            .zoom-instruction {
-                opacity: 1;
-                background: rgba(0, 0, 0, 0.8);
             }
         }
     </style>
@@ -497,17 +602,38 @@
             </h2>
             
             <div class="product-images">
-                <div class="image-container">
-                    <img class="zoomable-image" src="https://tyrone-agro1.github.io/demo/leaflet_page-0001.jpg" alt="OVIT Product Leaflet - Front View">
-                    <div class="zoom-instruction">Scroll to zoom</div>
+                <div class="image-container" id="imageContainer1">
+                    <div class="image-wrapper">
+                        <div class="image-loading">Loading high-resolution image...</div>
+                        <img class="zoomable-image" src="https://tyrone-agro1.github.io/demo/leaflet_page-0001.jpg" alt="OVIT Product Leaflet - Front View" onload="this.previousElementSibling.style.display='none'">
+                    </div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomImage('imageContainer1')">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+                    <div class="zoom-instruction">Double-click to zoom • Drag to pan</div>
                     <div class="image-label">OVIT Product Leaflet - Front View</div>
                 </div>
                 
-                <div class="image-container">
-                    <img class="zoomable-image" src="https://tyrone-agro1.github.io/demo/leaflet_page-0002.jpg" alt="OVIT Product Leaflet - Detailed Information">
-                    <div class="zoom-instruction">Scroll to zoom</div>
+                <div class="image-container" id="imageContainer2">
+                    <div class="image-wrapper">
+                        <div class="image-loading">Loading high-resolution image...</div>
+                        <img class="zoomable-image" src="https://tyrone-agro1.github.io/demo/leaflet_page-0002.jpg" alt="OVIT Product Leaflet - Detailed Information" onload="this.previousElementSibling.style.display='none'">
+                    </div>
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" onclick="zoomImage('imageContainer2')">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+                    <div class="zoom-instruction">Double-click to zoom • Drag to pan</div>
                     <div class="image-label">OVIT Product Leaflet - Detailed Information</div>
                 </div>
+            </div>
+            
+            <div class="unique-feature">
+                <h3>Why Choose OVIT?</h3>
+                <p>OVIT combines the power of Azoxystrobin and Difenoconazole to provide broad-spectrum disease control with enhanced plant health benefits. Our advanced formulation ensures maximum efficacy with minimal environmental impact.</p>
             </div>
             
             <h2 class="section-title">
@@ -520,7 +646,7 @@
                         <i class="fas fa-phone"></i>
                     </div>
                     <h3>Customer Care</h3>
-                    <p>Ph: +919879656784</p>
+                    <p>Ph: 610852210</p>
                     <p>Email: info@tyroneagro.com</p>
                 </div>
                 
@@ -537,7 +663,7 @@
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <h3>Head Office</h3>
-                    <p>Jay Ashapura Industrial Estate, Behind Rudanagar Transport 150 Feet Ring Road, Ahmedabad Highway, Anandpar, Navagam, Rajkot, Gujarat 360003</p>
+                    <p>123 Agro Street, Chemical Nagar, India</p>
                 </div>
             </div>
         </div>
@@ -547,83 +673,182 @@
         </footer>
     </div>
 
+    <div class="zoom-overlay" id="zoomOverlay"></div>
+
     <script>
-        // Initialize zoom functionality for all zoomable images
+        // Zoom functionality
+        let zoomState = {
+            isZoomed: false,
+            currentImage: null,
+            scale: 1,
+            posX: 0,
+            posY: 0,
+            startX: 0,
+            startY: 0,
+            isDragging: false
+        };
+        
+        // Initialize zoom for all images
         function initZoom() {
             const images = document.querySelectorAll('.zoomable-image');
-            
             images.forEach(img => {
-                let scale = 1;
-                let isZoomed = false;
+                // Double-click to zoom
+                img.addEventListener('dblclick', function(e) {
+                    const container = this.closest('.image-container');
+                    zoomImage(container.id);
+                });
                 
                 // Mouse wheel zoom
                 img.addEventListener('wheel', function(e) {
-                    e.preventDefault();
-                    
-                    // Determine zoom direction
-                    if (e.deltaY < 0) {
-                        // Zoom in
-                        scale = Math.min(scale + 0.1, 3);
-                    } else {
-                        // Zoom out
-                        scale = Math.max(scale - 0.1, 1);
-                    }
-                    
-                    // Apply the scale transformation
-                    img.style.transform = `scale(${scale})`;
-                    isZoomed = scale > 1;
-                    
-                    // Change cursor based on zoom state
-                    img.style.cursor = isZoomed ? 'zoom-out' : 'zoom-in';
-                });
-                
-                // Double-click to reset zoom
-                img.addEventListener('dblclick', function() {
-                    scale = 1;
-                    img.style.transform = 'scale(1)';
-                    img.style.cursor = 'zoom-in';
-                    isZoomed = false;
-                });
-                
-                // Touch pinch zoom for mobile devices
-                let initialDistance = null;
-                
-                img.addEventListener('touchstart', function(e) {
-                    if (e.touches.length === 2) {
+                    const container = this.closest('.image-container');
+                    if (container.classList.contains('zoomed')) {
                         e.preventDefault();
-                        initialDistance = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                    }
-                });
-                
-                img.addEventListener('touchmove', function(e) {
-                    if (e.touches.length === 2 && initialDistance !== null) {
-                        e.preventDefault();
-                        const currentDistance = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
                         
-                        if (initialDistance > 0) {
-                            const newScale = scale * (currentDistance / initialDistance);
-                            scale = Math.min(Math.max(newScale, 1), 3);
-                            img.style.transform = `scale(${scale})`;
-                            isZoomed = scale > 1;
-                            img.style.cursor = isZoomed ? 'zoom-out' : 'zoom-in';
-                        }
+                        // Calculate zoom factor
+                        const delta = e.deltaY < 0 ? 0.25 : -0.25;
+                        zoomState.scale = Math.max(1, Math.min(5, zoomState.scale + delta));
+                        
+                        // Apply zoom
+                        this.style.transform = `scale(${zoomState.scale})`;
                     }
-                });
-                
-                img.addEventListener('touchend', function() {
-                    initialDistance = null;
                 });
             });
+            
+            // Initialize dragging
+            initDragging();
         }
         
-        // Simple animation for info items
+        // Initialize dragging functionality
+        function initDragging() {
+            const wrappers = document.querySelectorAll('.image-wrapper');
+            
+            wrappers.forEach(wrapper => {
+                wrapper.addEventListener('mousedown', startDrag);
+                wrapper.addEventListener('touchstart', startDragTouch);
+                
+                // Prevent image drag
+                const img = wrapper.querySelector('img');
+                img.addEventListener('dragstart', (e) => e.preventDefault());
+            });
+            
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('touchmove', dragTouch);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+        
+        // Zoom image function
+        function zoomImage(containerId) {
+            const container = document.getElementById(containerId);
+            const img = container.querySelector('.zoomable-image');
+            const overlay = document.getElementById('zoomOverlay');
+            
+            if (container.classList.contains('zoomed')) {
+                // Reset zoom
+                container.classList.remove('zoomed');
+                overlay.classList.remove('active');
+                img.style.transform = 'scale(1)';
+                img.parentElement.style.cursor = 'grab';
+                zoomState.isZoomed = false;
+                zoomState.scale = 1;
+                zoomState.posX = 0;
+                zoomState.posY = 0;
+            } else {
+                // Apply zoom
+                container.classList.add('zoomed');
+                overlay.classList.add('active');
+                zoomState.isZoomed = true;
+                zoomState.currentImage = img;
+                zoomState.scale = 2.5; // Default zoom level
+                img.style.transform = `scale(${zoomState.scale})`;
+                img.parentElement.style.cursor = 'grab';
+                
+                // Load higher resolution image if available
+                loadHighResImage(img);
+            }
+        }
+        
+        // Load higher resolution image
+        function loadHighResImage(img) {
+            const currentSrc = img.src;
+            // Check if we can get a higher resolution version
+            if (currentSrc.includes('w=1200')) {
+                const highResSrc = currentSrc.replace('w=1200', 'w=2000');
+                const highResImg = new Image();
+                highResImg.onload = function() {
+                    img.src = highResImg.src;
+                };
+                highResImg.src = highResSrc;
+            }
+        }
+        
+        // Dragging functions
+        function startDrag(e) {
+            const container = e.target.closest('.image-container');
+            if (container.classList.contains('zoomed')) {
+                e.preventDefault();
+                zoomState.isDragging = true;
+                zoomState.startX = e.clientX - zoomState.posX;
+                zoomState.startY = e.clientY - zoomState.posY;
+                e.currentTarget.style.cursor = 'grabbing';
+            }
+        }
+        
+        function startDragTouch(e) {
+            const container = e.target.closest('.image-container');
+            if (container.classList.contains('zoomed') && e.touches.length === 1) {
+                e.preventDefault();
+                zoomState.isDragging = true;
+                zoomState.startX = e.touches[0].clientX - zoomState.posX;
+                zoomState.startY = e.touches[0].clientY - zoomState.posY;
+            }
+        }
+        
+        function drag(e) {
+            if (zoomState.isDragging && zoomState.isZoomed) {
+                e.preventDefault();
+                zoomState.posX = e.clientX - zoomState.startX;
+                zoomState.posY = e.clientY - zoomState.startY;
+                applyImageTransform();
+            }
+        }
+        
+        function dragTouch(e) {
+            if (zoomState.isDragging && zoomState.isZoomed && e.touches.length === 1) {
+                e.preventDefault();
+                zoomState.posX = e.touches[0].clientX - zoomState.startX;
+                zoomState.posY = e.touches[0].clientY - zoomState.startY;
+                applyImageTransform();
+            }
+        }
+        
+        function endDrag() {
+            if (zoomState.isDragging) {
+                zoomState.isDragging = false;
+                if (zoomState.currentImage) {
+                    zoomState.currentImage.parentElement.style.cursor = 'grab';
+                }
+            }
+        }
+        
+        function applyImageTransform() {
+            if (zoomState.currentImage) {
+                zoomState.currentImage.style.transform = 
+                    `scale(${zoomState.scale}) translate(${zoomState.posX}px, ${zoomState.posY}px)`;
+            }
+        }
+        
+        // Close zoom when clicking outside
+        document.getElementById('zoomOverlay').addEventListener('click', function(e) {
+            const zoomedContainers = document.querySelectorAll('.image-container.zoomed');
+            zoomedContainers.forEach(container => {
+                zoomImage(container.id);
+            });
+        });
+        
+        // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
+            // Simple animation for info items
             const infoItems = document.querySelectorAll('.info-item');
             
             infoItems.forEach((item, index) => {
