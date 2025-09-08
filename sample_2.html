@@ -11,8 +11,23 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Poppins', 'Segoe UI', sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         
+        /* Add this to prevent image dragging */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+            pointer-events: none;
+        }
+        
+        /* Rest of your existing CSS remains exactly the same */
         body {
             background: linear-gradient(to bottom, #f1f8f1, #e0f0e0);
             color: #2c3e50;
@@ -676,6 +691,28 @@
     <div class="zoom-overlay" id="zoomOverlay"></div>
 
     <script>
+        // Add context menu prevention
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        // Add keydown event prevention for saving
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+C, Ctrl+U, Ctrl+S
+            if (
+                e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+                (e.ctrlKey && e.shiftKey && e.key === 'C') || 
+                (e.ctrlKey && e.key === 'u') || 
+                (e.ctrlKey && e.key === 's') ||
+                (e.metaKey && e.key === 's') // Cmd+S for Mac
+            ) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
         // Zoom functionality
         let zoomState = {
             isZoomed: false,
